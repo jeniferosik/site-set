@@ -1,3 +1,6 @@
+import Image from "next/image";
+import Link from "next/link";
+
 import { Avatar } from "@/components/avatar";
 import { Markdown } from "@/components/markdown/markdown";
 import {
@@ -7,12 +10,9 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
-import { useShare } from "@/hooks/use-share/use-share";
+
 import type { Post } from "@/lib/posts";
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { PostShare } from "./components/post-share";
 
 type PostPageProps = {
 	post: Post;
@@ -20,27 +20,15 @@ type PostPageProps = {
 };
 
 export const PostPage = ({ post, content }: PostPageProps) => {
-	const [postUrl, setPostUrl] = useState("");
-
-	useEffect(() => {
-		setPostUrl(
-			`${window.location.origin}/blog/${encodeURIComponent(post.slug)}`,
-		);
-	}, [post.slug]);
-
-	const { shareButtons } = useShare({
-		url: postUrl,
-		title: post.title,
-		text: post.description,
-	});
-
 	const machineDate = post.date.slice(0, 10);
 	const [year, month, day] = machineDate.split("-");
 	const publishedDate = `${day}/${month}/${year}`;
 
+	const postUrl = `https://site.set/blog/${encodeURIComponent(post.slug)}`;
+
 	return (
-		<main className="py-20 text-gray-100">
-			<div className="container space-y-8 px-4 md:px-8">
+		<div className="mt-32 text-gray-100">
+			<div className="container space-y-12 px-4 md:px-8">
 				<Breadcrumb>
 					<BreadcrumbList>
 						<BreadcrumbItem>
@@ -101,35 +89,13 @@ export const PostPage = ({ post, content }: PostPageProps) => {
 						</div>
 					</article>
 
-					<aside className="space-y-6">
-						<div className="rounded-lg bg-gray-700 md:p-6">
-							<h2 className="mb-4 hidden text-heading-xs text-gray-100 md:block">
-								Compartilhar
-							</h2>
-
-							<div className="flex justify-between gap-2 md:flex-col">
-								{shareButtons.map((provider) => (
-									<Button
-										key={provider.provider}
-										type="button"
-										onClick={() => void provider.action()}
-										disabled={!postUrl}
-										variant="outline"
-										aria-label={provider.name}
-										title={provider.name}
-										className="w-fit justify-start gap-2 md:w-full">
-										{provider.icon}
-
-										<span className="hidden md:block">
-											{provider.name}
-										</span>
-									</Button>
-								))}
-							</div>
-						</div>
-					</aside>
+					<PostShare
+						url={postUrl}
+						title={post.title}
+						description={post.description}
+					/>
 				</div>
 			</div>
-		</main>
+		</div>
 	);
 };
