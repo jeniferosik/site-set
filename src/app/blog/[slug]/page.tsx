@@ -1,6 +1,10 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+
 import { getAllPosts, getPostContent } from "@/lib/posts";
 import { PostPage } from "@/templates/blog";
-import { notFound } from "next/navigation";
+
+const siteUrl = "https://site-set-lilac.vercel.app";
 
 type BlogPostPageProps = {
 	params: Promise<{
@@ -9,6 +13,43 @@ type BlogPostPageProps = {
 };
 
 export const revalidate = 60;
+
+export async function generateMetadata({
+	params,
+}: BlogPostPageProps): Promise<Metadata> {
+	const { slug } = await params;
+
+	const posts = await getAllPosts();
+	const post = posts.find((item) => item.slug === slug);
+
+	if (!post) {
+		return {};
+	}
+
+	const postUrl = `${siteUrl}/blog/${encodeURIComponent(slug)}`;
+	const postImageUrl = new URL(post.image, siteUrl).toString();
+
+	return {
+		title: post.title,
+		description: post.description,
+		authors: [{ name: post.author.name }],
+		robots: "index, follow",
+		openGraph: {
+			title: post.title,
+			description: post.description,
+			url: postUrl,
+			siteName: "Site.Set",
+			locale: "pt_BR",
+			type: "article",
+			images: [
+				{
+					url: postImageUrl,
+					alt: post.title,
+				},
+			],
+		},
+	};
+}
 
 export async function generateStaticParams() {
 	const posts = await getAllPosts();
